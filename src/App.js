@@ -1,38 +1,84 @@
-import React from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+// 先規劃 store
+// {
+//   原料: ["咖啡"],
+//   顏色: {
+//    紅: 111,
+//    綠: 78,
+//    藍: 55,
+//  }
+// }
 
-const instructions = Platform.select({
-  ios: "Press Cmd+R to reload,\n" + 
-    "Cmd+D or shake for dev menu",
-  android:
-    "Double tap R on your keyboard to reload,\n" +
-    "Shake or press menu button for dev menu",
-  web:
-    "Press Cmd+R to reload,\n"
-});
+// action:告知 state 接下來的動作
+const 加牛奶 = () => {
+  return {
+    type: "添加",
+    料: "牛奶"
+  };
+};
 
-export default () => 
-  <View style={styles.container}>
-    <Text style={styles.welcome}>Welcome to React Native!</Text>
-    <Text style={styles.instructions}>To get started, edit App.js</Text>
-    <Text style={styles.instructions}>{instructions}</Text>
-  </View>
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5FCFF"
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: "center",
-    margin: 10
-  },
-  instructions: {
-    textAlign: "center",
-    color: "#333333",
-    marginBottom: 5
+// reducer: 接收舊 state 與 action的指示，產生一個新的 state 回 store
+import { createStore } from "redux";
+const 顏色 = (state = { 紅: 111, 綠: 78, 藍: 55 }, action) => {
+  switch (action.料) {
+    case "牛奶":
+      return { 紅: state.紅 + 10, 綠: state.綠 + 10, 藍: state.藍 + 10 };
+    default:
+      return state;
   }
+};
+
+const 原料 = (state = ["咖啡"], action) => {
+  switch (action.type) {
+    case "添加":
+      return [...state, action.料];
+    default:
+      return state;
+  }
+};
+
+// 將多個 reducers 合併為一個 reducer
+import { combineReducers } from "redux";
+const reducer = combineReducers({
+  原料,
+  顏色
 });
+
+// 依照reducer建立store
+const store = createStore(reducer);
+console.log(JSON.stringify(store.getState()));
+
+// Compoment: 依照 props 建立
+import React from "react";
+import { Text, View, Button } from "react-native";
+const 飲品 = props => (
+  <View
+    style={{
+      justifyContent: "center",
+      alignItems: "center",
+      flex: 1,
+      backgroundColor: props.color
+    }}
+  >
+    <Text>{props.description}</Text>
+    <Button title="+牛奶" onPress={props.加牛奶} />
+  </View>
+);
+
+// container: 負責代表 Compoment 與 redux 交流，將store轉成props
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+const 特調 = connect(
+  state => ({
+    color: `rgb(${state.顏色.紅}, ${state.顏色.綠}, ${state.顏色.藍})`,
+    description: state.原料.toString()
+  }),
+  dispatch => bindActionCreators({ 加牛奶 }, dispatch)
+)(飲品);
+
+// Provider: 是使用在應用程式的根元件內，負責將唯一的 store 傳下去給其他子元件
+import { Provider } from "react-redux";
+export default () => (
+  <Provider store={store}>
+    <特調 />
+  </Provider>
+);
