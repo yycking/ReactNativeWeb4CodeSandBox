@@ -1,4 +1,6 @@
-// 先規劃 store
+// store: 一個app state的集合體，以object表示
+// 換句話說，store是由許多state組成
+// 先規劃 store,初始值如下
 // {
 //   原料: ["咖啡"],
 //   顏色: {
@@ -8,16 +10,16 @@
 //  }
 // }
 
-// action:告知 state 接下來的動作
-const 加牛奶 = () => {
-  return {
-    type: "添加",
-    料: "牛奶"
-  };
-};
+// action:一個描述行為的的object
+// 用來告知 reducer 更新 state 的動作
+// ！！！ action必須含有 type 這個預設的鍵值
+const 加牛奶 = () => ({
+  type: "添加",
+  料: "牛奶"
+});
 
 // reducer: 接收舊 state 與 action的指示，產生一個新的 state 回 store
-import { createStore } from "redux";
+// state的預設值，即store的預設值
 const 顏色 = (state = { 紅: 111, 綠: 78, 藍: 55 }, action) => {
   switch (action.料) {
     case "牛奶":
@@ -44,6 +46,7 @@ const reducer = combineReducers({
 });
 
 // 依照reducer建立store
+import { createStore } from "redux";
 const store = createStore(reducer);
 console.log(JSON.stringify(store.getState()));
 
@@ -64,7 +67,7 @@ const 飲品 = props => (
   </View>
 );
 
-// container: 負責代表 Compoment 與 redux 交流，將store轉成props
+// container: 負責代表 Compoment 與 redux 交流，將store／action 轉成props
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 const 特調 = connect(
